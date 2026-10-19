@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 14" width="280" height="326" style="image-rendering: pixelated;">
+  <!-- Y-Offset: 2 (grid shifted 2 units down to fit 12x14 viewport) -->
+
+  <!-- Row 2 (Grid Y: 2) -->
+  <rect x="4" y="4" width="4" height="1" fill="#3D262A" />
+
+  <!-- Row 3 (Grid Y: 3) -->
+  <rect x="3" y="5" width="1" height="1" fill="#3D262A" />
+  <rect x="4" y="5" width="4" height="1" fill="#FF9EB5" />
+  <rect x="8" y="5" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 4 (Grid Y: 4) -->
+  <rect x="2" y="6" width="1" height="1" fill="#3D262A" />
+  <rect x="3" y="6" width="1" height="1" fill="#FF9EB5" />
+  <rect x="4" y="6" width="1" height="1" fill="#FFD6E0" />
+  <rect x="5" y="6" width="4" height="1" fill="#FF9EB5" />
+  <rect x="9" y="6" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 5 (Grid Y: 5) -->
+  <rect x="2" y="7" width="1" height="1" fill="#3D262A" />
+  <rect x="3" y="7" width="6" height="1" fill="#FF9EB5" />
+  <rect x="9" y="7" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 6 (Grid Y: 6) -->
+  <rect x="2" y="8" width="1" height="1" fill="#3D262A" />
+  <rect x="3" y="8" width="1" height="1" fill="#FF9EB5" />
+  <rect x="4" y="8" width="1" height="1" fill="#3D262A" />
+  <rect x="5" y="8" width="2" height="1" fill="#FF9EB5" />
+  <rect x="7" y="8" width="1" height="1" fill="#3D262A" />
+  <rect x="8" y="8" width="1" height="1" fill="#FF9EB5" />
+  <rect x="9" y="8" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 7 (Grid Y: 7) -->
+  <rect x="1" y="9" width="1" height="1" fill="#3D262A" />
+  <rect x="2" y="9" width="8" height="1" fill="#FF9EB5" />
+  <rect x="10" y="9" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 8 (Grid Y: 8) -->
+  <rect x="1" y="10" width="1" height="1" fill="#3D262A" />
+  <rect x="2" y="10" width="1" height="1" fill="#FF9EB5" />
+  <rect x="3" y="10" width="1" height="1" fill="#FF6F91" />
+  <rect x="4" y="10" width="4" height="1" fill="#FF9EB5" />
+  <rect x="8" y="10" width="1" height="1" fill="#FF6F91" />
+  <rect x="9" y="10" width="1" height="1" fill="#FF9EB5" />
+  <rect x="10" y="10" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 9 (Grid Y: 9) -->
+  <rect x="1" y="11" width="1" height="1" fill="#3D262A" />
+  <rect x="2" y="11" width="8" height="1" fill="#FF9EB5" />
+  <rect x="10" y="11" width="1" height="1" fill="#3D262A" />
+
+  <!-- Row 10 (Grid Y: 10) -->
+  <rect x="2" y="12" width="8" height="1" fill="#3D262A" />
+</svg>
