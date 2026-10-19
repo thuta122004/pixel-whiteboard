@@ -26,6 +26,8 @@ import {
   Heart,
   Plus,
   Check,
+  Redo2,
+  Keyboard,
 } from "lucide-react";
 
 /* ───────── storage: localStorage with in-memory fallback ───────── */
@@ -280,23 +282,48 @@ html,body{margin:0}
 const GS = 16; // pixel-grid cell size in world units
 const SW = ["#FFB6C1", "#E2D4F0", "#C9F0DD", "#FFE9A8", "#3D262A"];
 const TOOLS = [
-  ["select", MousePointer2, "Select / move"],
-  ["hand", Hand, "Pan"],
+  ["select", MousePointer2, "Select / move", "v"],
+  ["hand", Hand, "Pan · or hold Space", "h"],
   [
     "pencil",
     Pencil,
     "Pencil · Shift+drag = rectangle, Shift+Alt+drag = circle",
+    "p",
   ],
   [
     "marker",
     Highlighter,
     "Marker · Shift+drag = rectangle, Shift+Alt+drag = circle",
+    "m",
   ],
-  ["rect", Square, "Rectangle"],
-  ["circle", Circle, "Ellipse"],
-  ["sticky", StickyNote, "Sticky note"],
-  ["text", Type, "Text box"],
-  ["eraser", Eraser, "Eraser · drag over lines & pixels, click shapes & notes"],
+  ["rect", Square, "Rectangle", "r"],
+  ["circle", Circle, "Ellipse", "o"],
+  ["sticky", StickyNote, "Sticky note", "s"],
+  ["text", Type, "Text box", "t"],
+  [
+    "eraser",
+    Eraser,
+    "Eraser · drag over lines & pixels, click shapes & notes",
+    "e",
+  ],
+];
+const KEYS = [
+  ["Ctrl Z", "Undo"],
+  ["Ctrl Y · Ctrl Shift Z", "Redo"],
+  ["Ctrl C · X · V", "Copy, cut, paste"],
+  ["Ctrl D", "Duplicate"],
+  ["Ctrl S", "Save now"],
+  ["Delete", "Delete selected"],
+  ["Arrow keys", "Nudge (Shift = 10)"],
+  ["Esc", "Deselect / close"],
+  ["V · H · P · M", "Select, pan, pencil, marker"],
+  ["R · O · S · T · E", "Rectangle, ellipse, sticky, text, eraser"],
+  ["G", "Pixel grid on / off"],
+  ["[  ]", "Smaller / larger brush"],
+  ["1 – 5", "Pick a color"],
+  ["+  −  0", "Zoom in, out, reset"],
+  ["Space", "Hold to pan"],
+  ["?", "This list"],
 ];
 const STOP = new Set(
   "the a an and or to of in on for with is are was it this that we i you be as at by".split(
@@ -602,6 +629,8 @@ function Whiteboard() {
   const [draft, setDraft] = useState(null);
   const [er, setEr] = useState(1);
   const [clearAsk, setClearAsk] = useState(false);
+  const [help, setHelp] = useState(false);
+  const [space, setSpace] = useState(false);
   const [sz, setSz] = useState({ pencil: 1, marker: 1 }); // size index per drawing tool
   const [cur, setCur] = useState(null);
   const [gallery, setGallery] = useState(false);
@@ -617,6 +646,9 @@ function Whiteboard() {
     svgRef = useRef(null),
     drag = useRef(null),
     hist = useRef([]),
+    fut = useRef([]),
+    clip = useRef(null),
+    pasteN = useRef(0),
     endAt = useRef(0);
   const total = (mode === "focus" ? 25 : 5) * 60;
   const snd = G.sound;
@@ -636,8 +668,12 @@ function Whiteboard() {
       }
       return n;
     });
+  const snapshot = () => {
+    hist.current = [...hist.current.slice(-29), Gr.current.items];
+    fut.current = [];
+  }; // a new action clears redo
   const setItems = (f, keep) => {
-    if (!keep) hist.current = [...hist.current.slice(-29), Gr.current.items];
+    if (!keep) snapshot();
     upd((g) => ({ ...g, items: f(g.items) }));
   };
   const patch = (id, p) =>
@@ -720,24 +756,23 @@ function Whiteboard() {
     setLeft((m === "focus" ? 25 : 5) * 60);
   };
 
-  /* keyboard: delete selection, undo */
-  useEffect(() => {
-    const k = (e) => {
-      if (/TEXTAREA|INPUT/.test(e.target.tagName)) return;
-      if ((e.key === "Delete" || e.key === "Backspace") && sel) {
-        setItems((a) => a.filter((i) => i.id !== sel));
-        setSel(null);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") undo();
-    };
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  });
   const undo = () => {
     const h = hist.current;
     if (!h.length) return;
-    upd((g) => ({ ...g, items: h[h.length - 1] }));
+    const prev = h[h.length - 1];
+    fut.current = [...fut.current, Gr.current.items];
     hist.current = h.slice(0, -1);
+    upd((g) => ({ ...g, items: prev }));
+    setSel(null);
+  };
+  const redo = () => {
+    const f = fut.current;
+    if (!f.length) return;
+    const next = f[f.length - 1];
+    hist.current = [...hist.current.slice(-29), Gr.current.items];
+    fut.current = f.slice(0, -1);
+    upd((g) => ({ ...g, items: next }));
+    setSel(null);
   };
 
   /* ── canvas geometry ── */
@@ -761,12 +796,12 @@ function Whiteboard() {
     if (e.target.tagName === "TEXTAREA") return;
     const p = toW(e),
       s = snap(p);
-    if (tool === "hand" || e.button === 1) {
+    if (tool === "hand" || space || e.button === 1) {
       drag.current = { k: "pan", sx: e.clientX, sy: e.clientY, v: view };
     } else if (tool === "select") {
       setSel(null);
     } else if (tool === "eraser") {
-      hist.current = [...hist.current.slice(-29), Gr.current.items];
+      snapshot();
       drag.current = { k: "erase", last: p };
       setItems((a) => hitErase(a, p, ER[er]), true);
     } else if ((tool === "pencil" || tool === "marker") && e.shiftKey) {
@@ -945,6 +980,7 @@ function Whiteboard() {
     setDraft(null);
   };
   const itemDown = (it) => (e) => {
+    if (space) return; // Space held: let the canvas pan instead
     if (tool === "eraser") {
       if (it.type === "stroke" || it.type === "pix") return; // bubbles up to the canvas: pixel-erase
       e.stopPropagation();
@@ -956,7 +992,7 @@ function Whiteboard() {
     e.stopPropagation();
     setSel(it.id);
     const p = toW(e);
-    hist.current = [...hist.current.slice(-29), Gr.current.items];
+    snapshot();
     drag.current = {
       k: "move",
       id: it.id,
@@ -972,7 +1008,7 @@ function Whiteboard() {
     e.stopPropagation();
     setSel(it.id);
     const p = toW(e);
-    hist.current = [...hist.current.slice(-29), Gr.current.items];
+    snapshot();
     drag.current = {
       k: "resize",
       id: it.id,
@@ -1151,7 +1187,9 @@ function Whiteboard() {
             width: it.w,
             height: it.h,
             pointerEvents:
-              tool === "select" || tool === "eraser" ? "auto" : "none",
+              !space && (tool === "select" || tool === "eraser")
+                ? "auto"
+                : "none",
           }}
         >
           <div
@@ -1189,6 +1227,181 @@ function Whiteboard() {
         </div>
       );
     });
+  /* ── clipboard actions (selected item) ── */
+  const copy = (cut) => {
+    const it = G.items.find((i) => i.id === sel);
+    if (!it) return;
+    clip.current = JSON.parse(JSON.stringify(it));
+    pasteN.current = 0;
+    sfx.click(snd);
+    if (cut) {
+      setItems((a) => a.filter((i) => i.id !== sel));
+      setSel(null);
+    }
+  };
+  const paste = () => {
+    if (!clip.current) return;
+    pasteN.current += 1;
+    const d = (grid ? GS : 20) * pasteN.current,
+      c = JSON.parse(JSON.stringify(clip.current));
+    delete c.summary;
+    const it = { ...c, id: newId(), x: (c.x || 0) + d, y: (c.y || 0) + d };
+    setItems((a) => [...a, it]);
+    setSel(it.id);
+    sfx.pop(snd);
+  };
+  const bump = (d) => {
+    if (tool === "eraser") setEr((v) => clamp(v + d, 0, 3));
+    else if (tool === "pencil" || tool === "marker")
+      setSz((z) => ({ ...z, [tool]: clamp(z[tool] + d, 0, 3) }));
+  };
+
+  /* ── keyboard shortcuts (ignored while typing in a note or input) ── */
+  useEffect(() => {
+    const typing = (t) =>
+      /^(TEXTAREA|INPUT|SELECT)$/.test(t.tagName) || t.isContentEditable;
+    const kd = (e) => {
+      if (e.isComposing) return;
+      const key = e.key.toLowerCase(),
+        mod = e.ctrlKey || e.metaKey;
+      if (key === "escape") {
+        if (clearAsk || gallery || help) {
+          setClearAsk(false);
+          setGallery(false);
+          setHelp(false);
+        } else {
+          setSel(null);
+          setDraft(null);
+          drag.current = null;
+          if (document.activeElement && document.activeElement.blur)
+            document.activeElement.blur();
+        }
+        return;
+      }
+      if (typing(e.target)) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setHelp((h) => !h);
+        return;
+      }
+      if (clearAsk || gallery || help) return;
+      if (mod) {
+        if (key === "z") {
+          e.preventDefault();
+          if (e.shiftKey) redo();
+          else undo();
+        } else if (key === "y") {
+          e.preventDefault();
+          redo();
+        } else if (key === "c") copy(false);
+        else if (key === "x") {
+          if (sel) {
+            e.preventDefault();
+            copy(true);
+          }
+        } else if (key === "v") {
+          if (clip.current) {
+            e.preventDefault();
+            paste();
+          }
+        } else if (key === "d") {
+          e.preventDefault();
+          copy(false);
+          paste();
+        } else if (key === "s") {
+          e.preventDefault();
+          store.set(Gr.current);
+          say("Saved");
+        }
+        return;
+      }
+      if (key === " ") {
+        e.preventDefault();
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        )
+          document.activeElement.blur();
+        if (!e.repeat) setSpace(true);
+        return;
+      }
+      if (key === "delete" || key === "backspace") {
+        if (sel) {
+          e.preventDefault();
+          setItems((a) => a.filter((i) => i.id !== sel));
+          setSel(null);
+        }
+        return;
+      }
+      if (key.startsWith("arrow")) {
+        const it = sel && Gr.current.items.find((i) => i.id === sel);
+        if (!it) return;
+        e.preventDefault();
+        const st = e.shiftKey ? 10 : grid ? GS : 1;
+        if (!e.repeat) snapshot();
+        patch(sel, {
+          x:
+            (it.x || 0) +
+            (key === "arrowleft" ? -st : key === "arrowright" ? st : 0),
+          y:
+            (it.y || 0) +
+            (key === "arrowup" ? -st : key === "arrowdown" ? st : 0),
+        });
+        return;
+      }
+      const t = TOOLS.find((x) => x[3] === key);
+      if (t) {
+        setTool(t[0]);
+        sfx.click(snd);
+      } else if (key === "g") {
+        setGrid((g) => !g);
+        sfx.click(snd);
+      } else if (key === "[") bump(-1);
+      else if (key === "]") bump(1);
+      else if (key === "+" || key === "=") zoomAt(1.2);
+      else if (key === "-") zoomAt(1 / 1.2);
+      else if (key === "0") setView({ x: -40, y: -40, z: 1 });
+      else if (/^[1-5]$/.test(key)) setColor(SW[+key - 1]);
+    };
+    const ku = (e) => {
+      if (e.key === " ") setSpace(false);
+    };
+    const bl = () => setSpace(false);
+    // pasting plain text (when no board item was copied) creates a sticky note
+    const pe = (e) => {
+      if (typing(e.target) || clip.current) return;
+      const text = (e.clipboardData && e.clipboardData.getData("text")) || "";
+      if (!text.trim()) return;
+      e.preventDefault();
+      const id = newId();
+      setItems((a) => [
+        ...a,
+        {
+          id,
+          type: "sticky",
+          x: view.x + box.w / 2 / view.z - 100,
+          y: view.y + box.h / 2 / view.z - 85,
+          w: 200,
+          h: 170,
+          color,
+          text: text.slice(0, 600),
+        },
+      ]);
+      setSel(id);
+      sfx.pop(snd);
+    };
+    window.addEventListener("keydown", kd);
+    window.addEventListener("keyup", ku);
+    window.addEventListener("blur", bl);
+    window.addEventListener("paste", pe);
+    return () => {
+      window.removeEventListener("keydown", kd);
+      window.removeEventListener("keyup", ku);
+      window.removeEventListener("blur", bl);
+      window.removeEventListener("paste", pe);
+    };
+  });
+
   const done = G.tasks.filter((t) => t.done).length;
 
   return (
@@ -1206,6 +1419,14 @@ function Whiteboard() {
               <Coins size={14} />
               {G.coins}
             </span>
+            <button
+              className="pp-btn sm cream"
+              title="Keyboard shortcuts (?)"
+              aria-label="Keyboard shortcuts"
+              onClick={click(() => setHelp(true))}
+            >
+              <Keyboard size={14} />
+            </button>
             <button
               className="pp-btn sm lav"
               disabled={!G.items.length}
@@ -1235,10 +1456,10 @@ function Whiteboard() {
         </header>
 
         <nav className="wb-tools" aria-label="Tools">
-          {TOOLS.map(([id, Ic, label]) => (
+          {TOOLS.map(([id, Ic, label, hk]) => (
             <button
               key={id}
-              title={label}
+              title={`${label} (${hk.toUpperCase()})`}
               aria-label={label}
               className={`pp-btn sm ${tool === id ? "gold" : "cream"}`}
               onClick={click(() => setTool(id))}
@@ -1308,12 +1529,20 @@ function Whiteboard() {
             <Grid3x3 size={18} />
           </button>
           <button
-            title="Undo"
+            title="Undo (Ctrl+Z)"
             aria-label="Undo"
             className="pp-btn sm cream"
             onClick={click(undo)}
           >
             <Undo2 size={18} />
+          </button>
+          <button
+            title="Redo (Ctrl+Y)"
+            aria-label="Redo"
+            className="pp-btn sm cream"
+            onClick={click(redo)}
+          >
+            <Redo2 size={18} />
           </button>
           <button
             title="Delete selected"
@@ -1362,7 +1591,7 @@ function Whiteboard() {
             style={{
               display: "block",
               cursor:
-                tool === "hand"
+                tool === "hand" || space
                   ? "grab"
                   : tool === "select"
                     ? "default"
@@ -1743,12 +1972,38 @@ function Whiteboard() {
         </div>
       )}
 
+      {help && (
+        <Modal title="Keyboard shortcuts" onClose={() => setHelp(false)}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              gap: "10px 14px",
+              alignItems: "center",
+            }}
+          >
+            {KEYS.map(([k, d]) => (
+              <React.Fragment key={k}>
+                <span
+                  className="pp-chip pp-pixel"
+                  style={{
+                    justifySelf: "start",
+                    fontSize: ".72rem",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {k}
+                </span>
+                <span className="text-sm font-bold">{d}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        </Modal>
+      )}
+
       {clearAsk && (
         <Modal title="Delete everything?" onClose={() => setClearAsk(false)}>
-          <p
-            className="text-sm font-bold mb-3"
-            style={{ marginBottom: 16 }}
-          >
+          <p className="text-sm font-bold mb-3" style={{ marginBottom: 16 }}>
             All drawings, shapes and notes on the board will be removed.
           </p>
           <div className="flex gap-2">
