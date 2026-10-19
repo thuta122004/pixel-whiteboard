@@ -1946,6 +1946,13 @@ function Whiteboard() {
               ))}
             </ul>
           </section>
+          <div className="border-t-2 border-dashed border-[#3D262A] pt-3 mt-4 text-center">
+            <p className="text-xs font-bold" style={{ opacity: 0.65 }}>
+              Pixel Whiteboard · v1.0.0
+              <br />
+              Designed & Developed by Thu Ta
+            </p>
+          </div>
         </aside>
       </div>
 
