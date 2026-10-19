@@ -271,7 +271,7 @@ html,body{margin:0}
 .wb-note{width:100%;height:100%;display:flex;flex-direction:column;border:3px solid #3D262A;border-radius:6px;box-shadow:3px 3px 0 #3D262A;box-sizing:border-box}
 .wb-grip{touch-action:none;height:18px;cursor:grab;border-bottom:3px solid #3D262A;background:rgba(61,38,42,.12)}
 .wb-note textarea,.wb-text textarea{user-select:text;-webkit-user-select:text;flex:1;width:100%;border:0;background:transparent;resize:none;outline:none;font:700 16px/1.35 ui-rounded,'Nunito','Segoe UI',sans-serif;color:#3D262A;caret-color:#3D262A;padding:8px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-.wb-text{width:100%;height:100%;display:flex;flex-direction:column;border:2px dashed #3D262A;border-radius:6px;box-sizing:border-box;background:rgba(255,253,249,.92)}
+.wb-text{width:100%;height:100%;display:flex;flex-direction:column;border:2px solid #3D262A;border-radius:6px;box-sizing:border-box;background:rgba(255,253,249,.92)}
 .wb-resize{position:absolute;right:3px;bottom:3px;width:16px;height:16px;cursor:nwse-resize;z-index:2;touch-action:none;background:linear-gradient(135deg,transparent 0 48%,#3D262A 48% 58%,transparent 58% 72%,#3D262A 72% 82%,transparent 82%)}
 .wb-sel{outline:3px dashed #7A4FA3;outline-offset:3px;border-radius:6px}
 .pp-sel{filter:drop-shadow(0 0 0 #7A4FA3) drop-shadow(2px 2px 0 #7A4FA3)}
