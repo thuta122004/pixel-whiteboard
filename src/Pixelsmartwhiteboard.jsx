@@ -293,7 +293,7 @@ html,body{margin:0}
 .wb-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .wb-fs{min-width:2.6rem;text-align:center;padding:.1rem .3rem;font-size:.95rem;border-radius:8px}
 .pp-sel{filter:drop-shadow(0 0 0 #7A4FA3) drop-shadow(2px 2px 0 #7A4FA3)}
-@media (max-width:820px){.wb-sep{width:0;height:30px;border-top:0;border-left:3px dashed rgba(61,38,42,.3)}.wb-app{grid-template-columns:1fr;grid-template-rows:auto auto 70vh auto;height:auto}.wb-tools{display:flex;flex-wrap:wrap}}
+@media (max-width:820px){.wb-sep{width:0;height:30px;border-top:0;border-left:3px dashed rgba(61,38,42,.3)}.wb-app{grid-template-columns:1fr;grid-template-rows:auto auto 70vh auto;height:auto}.wb-tools{display:flex;flex-wrap:wrap}.wb-pen-sizes{padding-top:0.5rem;}}
 `;
 
 /* ───────── constants & helpers ───────── */
@@ -1696,7 +1696,7 @@ function Whiteboard() {
             <div
               className="flex flex-wrap gap-1 justify-center"
               style={{
-                maxWidth: 64,
+                maxWidth: "none",
                 gridColumn: "1/-1",
                 justifySelf: "center",
               }}
@@ -1737,8 +1737,8 @@ function Whiteboard() {
             {inkTool ? "Ink" : "Fill"}
           </p>
           <div
-            className="flex flex-wrap gap-1 justify-center"
-            style={{ maxWidth: 64, gridColumn: "1/-1", justifySelf: "center" }}
+            className="flex flex-wrap gap-1 justify-center wb-pen-sizes"
+            style={{ maxWidth: "none", gridColumn: "1/-1", justifySelf: "center" }}
           >
             {(inkTool ? INK : FILL).map((c, i) => (
               <button
