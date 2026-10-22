@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+} from "react";
 import {
   MousePointer2,
   Hand,
@@ -236,7 +242,7 @@ html,body{margin:0}
 .pp-root,.pp-root *,.pp-root *::before,.pp-root *::after{box-sizing:border-box}
 .pp-root h1,.pp-root h2,.pp-root p{margin:0}
 .pp-root button,.pp-root input,.pp-root textarea{font-family:inherit}
-.fixed{position:fixed}.flex{display:flex}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.font-black{font-weight:900}.font-bold{font-weight:700}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.inset-0{inset:0}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.min-w-0{min-width:0}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.my-1{margin:.25rem 0}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.text-center{text-align:center}.text-lg{font-size:1.125rem}.text-sm{font-size:.875rem}.text-xl{font-size:1.25rem}.text-xs{font-size:.75rem}.w-full{width:100%}.z-40{z-index:40}
+.fixed{position:fixed}.flex{display:flex}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.font-black{font-weight:900}.font-bold{font-weight:700}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.inset-0{inset:0}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.min-w-0{min-width:0}.mt-1{margin-top:.25rem}.my-1{margin:.25rem 0}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.text-center{text-align:center}.text-lg{font-size:1.125rem}.text-sm{font-size:.875rem}.text-xs{font-size:.75rem}.w-full{width:100%}.z-40{z-index:40}
 .pp-root{min-height:100vh;color:#4A2E35;font-family:ui-rounded,'Nunito','Segoe UI',system-ui,sans-serif;background-color:#FFF0F5;background-image:radial-gradient(#FDE2E4 2px,transparent 2px);background-size:22px 22px}
 .pp-pixel{font-family:'Courier New',ui-monospace,monospace;font-weight:900;letter-spacing:.06em}
 .pp-pix{image-rendering:crisp-edges;image-rendering:pixelated}
@@ -252,50 +258,86 @@ html,body{margin:0}
 .pp-in{background:#FFFDF9;border:3px solid #3D262A;border-radius:10px;padding:.3rem .5rem;font-weight:800;color:#3D262A;min-width:0}
 .pp-bar{display:flex;gap:3px}.pp-bar i{flex:1;height:12px;background:#FFFDF9;border:2px solid #3D262A}.pp-bar i.on{background:#FFB6C1}
 @keyframes pp-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes pp-wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 @keyframes pp-pop{0%{transform:scale(.2)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes pp-zzz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-22px)}}
 .pp-bounce{animation:pp-bounce 1.1s steps(2,jump-none) infinite}
-.pp-wobble{animation:pp-wobble 1.2s ease-in-out infinite;transform-origin:50% 90%}
 .pp-pop{animation:pp-pop .5s ease-out both}
-@media (prefers-reduced-motion:reduce){.pp-bounce,.pp-wobble,.pp-pop{animation:none}}
+@media (prefers-reduced-motion:reduce){.pp-bounce,.pp-pop{animation:none}}
 .wb-app{display:grid;grid-template-columns:auto 1fr 270px;grid-template-rows:auto 1fr;gap:12px;padding:12px;height:100vh}
 .wb-head{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.wb-tools{display:flex;flex-direction:column;gap:6px;align-items:center;overflow:auto;padding:4px 6px 8px 2px}
+.wb-tools{display:grid;grid-template-columns:repeat(2,40px);gap:8px 6px;justify-content:center;align-content:start;overflow:auto;padding:12px 10px 14px}
+.wb-tools .pp-btn{width:40px;height:40px;padding:0}
+.pp-btn.on{transform:translateY(3px);box-shadow:0 1px 0 #3D262A}
+.wb-cap{font-size:.68rem;opacity:.75;margin:0;text-align:center}
 .wb-tools,.wb-side{min-height:0}
-.wb-sep{display:block;width:34px;border-top:3px dashed rgba(61,38,42,.3)}
+.wb-sep{display:block;width:34px;border-top:3px dashed rgba(61,38,42,.3);grid-column:1/-1;justify-self:center;margin:2px 0}
 .wb-board{user-select:none;-webkit-user-select:none;position:relative;overflow:hidden;min-height:300px;touch-action:none;background:#FFFDF9}
 .wb-side{display:flex;flex-direction:column;gap:12px;overflow:auto;padding-right:4px}
-.wb-sw{width:24px;height:24px;border:3px solid #3D262A;border-radius:6px;cursor:pointer;padding:0}
-.wb-sw.on{box-shadow:0 0 0 3px #7A4FA3}
-.wb-note{width:100%;height:100%;display:flex;flex-direction:column;border:3px solid #3D262A;border-radius:6px;box-shadow:3px 3px 0 #3D262A;box-sizing:border-box}
-.wb-grip{touch-action:none;height:18px;cursor:grab;border-bottom:3px solid #3D262A;background:rgba(61,38,42,.12)}
-.wb-note textarea,.wb-text textarea{user-select:text;-webkit-user-select:text;flex:1;width:100%;border:0;background:transparent;resize:none;outline:none;font:700 16px/1.35 ui-rounded,'Nunito','Segoe UI',sans-serif;color:#3D262A;caret-color:#3D262A;padding:8px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-.wb-text{width:100%;height:100%;display:flex;flex-direction:column;border:2px solid #3D262A;border-radius:6px;box-sizing:border-box;background:rgba(255,253,249,.92)}
-.wb-resize{position:absolute;right:3px;bottom:3px;width:16px;height:16px;cursor:nwse-resize;z-index:2;touch-action:none;background:linear-gradient(135deg,transparent 0 48%,#3D262A 48% 58%,transparent 58% 72%,#3D262A 72% 82%,transparent 82%)}
-.wb-sel{outline:3px dashed #7A4FA3;outline-offset:3px;border-radius:6px}
+.wb-sw{width:26px;height:26px;border:3px solid #3D262A;border-radius:6px;cursor:pointer;padding:0;box-shadow:0 2px 0 #3D262A}
+.wb-sw.sm{width:22px;height:22px;border-radius:5px}
+.wb-sw:focus-visible{outline:3px dashed #7A4FA3;outline-offset:2px}
+.wb-sw.on{box-shadow:0 0 0 2px #FFFDF9,0 0 0 5px #7A4FA3}
+.wb-note{width:100%;height:100%;display:flex;flex-direction:column;border:3px solid #3D262A;border-radius:10px;box-shadow:5px 5px 0 #3D262A;box-sizing:border-box;position:relative;overflow:hidden}
+.wb-grip{touch-action:none;height:22px;flex:none;cursor:grab;border-bottom:3px solid #3D262A;background:rgba(61,38,42,.16);display:flex;align-items:center;justify-content:center;gap:5px;color:var(--ink,#3D262A)}
+.wb-grip:active{cursor:grabbing}
+.wb-grip i{width:5px;height:5px;background:currentColor;opacity:.6}
+.wb-note textarea,.wb-text textarea{user-select:text;-webkit-user-select:text;flex:1;min-height:0;width:100%;border:0;background:transparent;resize:none;outline:none;font-family:ui-rounded,'Nunito','Segoe UI',sans-serif;font-weight:800;padding:10px 14px 14px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wb-note textarea::placeholder,.wb-text textarea::placeholder{color:inherit;opacity:.4}
+.wb-text{width:100%;height:100%;display:flex;flex-direction:column;border:3px solid #3D262A;border-radius:10px;box-shadow:4px 4px 0 #3D262A;box-sizing:border-box;position:relative;overflow:hidden}
+.wb-text::before{content:"";position:absolute;left:0;top:22px;bottom:0;width:12px;background:var(--ink);border-right:3px solid #3D262A}
+.wb-text textarea{padding-left:28px}
+.wb-resize{position:absolute;right:5px;bottom:5px;width:6px;height:6px;cursor:nwse-resize;z-index:2;touch-action:none;background:currentColor;box-shadow:-8px 0 0 currentColor,0 -8px 0 currentColor;color:var(--ink,#3D262A)}
+.wb-resize::after{content:"";position:absolute;inset:-14px -5px -5px -14px}
+.wb-sel{outline:3px dashed #7A4FA3;outline-offset:5px;border-radius:10px}
+.wb-bar{position:absolute;z-index:6;display:flex;flex-direction:column;gap:6px;padding:8px 10px;width:max-content;max-width:calc(100% - 16px);border-radius:14px}
+.wb-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.wb-fs{min-width:2.6rem;text-align:center;padding:.1rem .3rem;font-size:.95rem;border-radius:8px}
 .pp-sel{filter:drop-shadow(0 0 0 #7A4FA3) drop-shadow(2px 2px 0 #7A4FA3)}
-@media (max-width:820px){.wb-sep{width:0;height:30px;border-top:0;border-left:3px dashed rgba(61,38,42,.3)}.wb-app{grid-template-columns:1fr;grid-template-rows:auto auto 70vh auto;height:auto}.wb-tools{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+@media (max-width:820px){.wb-sep{width:0;height:30px;border-top:0;border-left:3px dashed rgba(61,38,42,.3)}.wb-app{grid-template-columns:1fr;grid-template-rows:auto auto 70vh auto;height:auto}.wb-tools{display:flex;flex-wrap:wrap}}
 `;
 
 /* ───────── constants & helpers ───────── */
 const GS = 16; // pixel-grid cell size in world units
-const SW = ["#FFB6C1", "#E2D4F0", "#C9F0DD", "#FFE9A8", "#3D262A"];
+const FILL = [
+  "#FFB6C1",
+  "#FF6B6B",
+  "#FFB27A",
+  "#FFE9A8",
+  "#C9F0DD",
+  "#7CCB92",
+  "#BFE3FF",
+  "#E2D4F0",
+  "#FFFDF9",
+  "#3D262A",
+]; // paper / shape / highlighter colours (pink, red, orange, yellow, mint, green, sky, lavender, cream, dark)
+const INK = [
+  "#3D262A",
+  "#E5383B",
+  "#F28C28",
+  "#2E9E5B",
+  "#2F6FDE",
+  "#7A4FA3",
+  "#E0568F",
+  "#8A7A7E",
+]; // pen + text colours
+const FS = [16, 20, 24, 30, 38, 48]; // text sizes
+const fsOf = (it) => it.fs || (it.type === "text" ? 30 : 24);
+const PAPER = "#FFFDF9";
+const readable = (hex) => {
+  const n = parseInt(hex.slice(1), 16),
+    c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] < 0.25
+    ? "#FFFDF9"
+    : "#3D262A";
+}; // dark paper gets light text
 const TOOLS = [
   ["select", MousePointer2, "Select / move", "v"],
   ["hand", Hand, "Pan · or hold Space", "h"],
-  [
-    "pencil",
-    Pencil,
-    "Pencil · Shift+drag = rectangle, Shift+Alt+drag = circle",
-    "p",
-  ],
-  [
-    "marker",
-    Highlighter,
-    "Marker · Shift+drag = rectangle, Shift+Alt+drag = circle",
-    "m",
-  ],
+  ["pencil", Pencil, "Pencil", "p"],
+  ["marker", Highlighter, "Marker", "m"],
   ["rect", Square, "Rectangle", "r"],
   ["circle", Circle, "Ellipse", "o"],
   ["sticky", StickyNote, "Sticky note", "s"],
@@ -320,7 +362,7 @@ const KEYS = [
   ["R · O · S · T · E", "Rectangle, ellipse, sticky, text, eraser"],
   ["G", "Pixel grid on / off"],
   ["[  ]", "Smaller / larger brush"],
-  ["1 – 5", "Pick a color"],
+  ["1 – 9", "Pick a color"],
   ["+  −  0", "Zoom in, out, reset"],
   ["Space", "Hold to pan"],
   ["?", "This list"],
@@ -582,6 +624,193 @@ const SvgItem = React.memo(function SvgItem({ it, cls, cur, down }) {
   return null; // sticky + text boxes live in the HTML layer
 });
 
+/* sticky notes + text boxes: real HTML so text stays sharp at any zoom */
+function Note({
+  it,
+  selected,
+  live,
+  eraser,
+  itemDown,
+  resizeDown,
+  patch,
+  setSel,
+  newNote,
+  snd,
+}) {
+  const sticky = it.type === "sticky",
+    fs = fsOf(it),
+    lh = Math.round(fs * 1.35),
+    bg = sticky ? it.color : it.fill || PAPER,
+    ink = sticky ? readable(it.color) : it.ink || "#3D262A",
+    rule = ink === "#3D262A" ? "rgba(61,38,42,.16)" : "rgba(255,253,249,.3)";
+  const ta = useRef(null);
+  useLayoutEffect(() => {
+    const t = ta.current; // text size changed (or old note loaded): grow the note so nothing is cut off
+    if (t && t.scrollHeight - t.clientHeight > 1)
+      patch(it.id, { h: it.h + t.scrollHeight - t.clientHeight });
+  }, [fs]);
+  return (
+    <div
+      className={selected ? "wb-sel" : ""}
+      onPointerDown={eraser ? itemDown(it) : undefined}
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate(${it.x}px, ${it.y}px)`,
+        width: it.w,
+        height: it.h,
+        pointerEvents: live ? "auto" : "none",
+      }}
+    >
+      <div
+        className={sticky ? "wb-note" : "wb-text"}
+        style={{ background: bg, "--ink": ink }}
+      >
+        <div className="wb-grip" onPointerDown={itemDown(it)}>
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+        <textarea
+          value={it.text}
+          placeholder={sticky ? "Write a note…" : "Type here…"}
+          ref={(el) => {
+            ta.current = el;
+            if (el && newNote.current === it.id) {
+              newNote.current = null;
+              el.focus();
+            }
+          }}
+          style={{
+            fontSize: fs,
+            lineHeight: `${lh}px`,
+            color: ink,
+            caretColor: ink,
+            backgroundImage: sticky
+              ? `linear-gradient(to bottom, transparent ${lh - 2}px, ${rule} ${lh - 2}px)`
+              : "none",
+            backgroundSize: `100% ${lh}px`,
+            backgroundPosition: "0 10px",
+            backgroundRepeat: "repeat-y",
+            backgroundAttachment: "local",
+          }}
+          spellCheck={false}
+          onChange={(e) => {
+            const t = e.target,
+              nv = autoCalc(t.value, e.nativeEvent),
+              extra = t.scrollHeight - t.clientHeight; // grow the note when text overflows
+            if (nv !== t.value) sfx.pop(snd);
+            patch(
+              it.id,
+              extra > 0 ? { text: nv, h: it.h + extra } : { text: nv },
+            );
+          }}
+          onFocus={() => setSel(it.id)}
+        />
+        <div
+          className="wb-resize"
+          title="Drag to resize"
+          onPointerDown={resizeDown(it)}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* floating style bar above the selected note / text box / shape */
+function StyleBar({ it, view, box, patch, snd }) {
+  const isText = it.type === "text",
+    note = isText || it.type === "sticky",
+    fs = fsOf(it),
+    i = Math.max(0, FS.indexOf(fs)),
+    H = isText ? 128 : note ? 92 : 52,
+    sx = (it.x - view.x) * view.z,
+    sy = (it.y - view.y) * view.z,
+    above = sy - H - 14,
+    top = clamp(
+      above >= 6 ? above : sy + it.h * view.z + 14,
+      6,
+      Math.max(6, box.h - H - 6),
+    ),
+    left = clamp(sx, 8, Math.max(8, box.w - 330));
+  const pick = (p) => {
+    sfx.click(snd);
+    patch(it.id, p);
+  };
+  const sw = (pal, cur, key) =>
+    pal.map((c) => (
+      <button
+        key={c}
+        aria-label={`Color ${c}`}
+        className={`wb-sw sm ${cur === c ? "on" : ""}`}
+        style={{ background: c }}
+        onClick={() => pick({ [key]: c })}
+      />
+    ));
+  return (
+    <div
+      className="pp-card wb-bar"
+      style={{ left, top }}
+      role="toolbar"
+      aria-label="Style"
+    >
+      {note && (
+        <div className="wb-row">
+          <button
+            className="pp-btn sm cream"
+            aria-label="Smaller text"
+            disabled={i <= 0}
+            style={{ width: 38, height: 30, padding: 0 }}
+            onClick={() => pick({ fs: FS[i - 1] })}
+          >
+            <span style={{ fontSize: 12, fontWeight: 900 }}>A−</span>
+          </button>
+          <span className="pp-lcd pp-pixel wb-fs" title="Text size">
+            {fs}
+          </span>
+          <button
+            className="pp-btn sm cream"
+            aria-label="Bigger text"
+            disabled={i >= FS.length - 1}
+            style={{ width: 38, height: 30, padding: 0 }}
+            onClick={() => pick({ fs: FS[i + 1] })}
+          >
+            <span style={{ fontSize: 17, fontWeight: 900 }}>A+</span>
+          </button>
+        </div>
+      )}
+      {isText && (
+        <div className="wb-row">
+          <span
+            className="pp-pixel wb-cap"
+            style={{ minWidth: 40, textAlign: "left" }}
+          >
+            Text
+          </span>
+          {sw(INK, it.ink || "#3D262A", "ink")}
+        </div>
+      )}
+      <div className="wb-row">
+        {isText && (
+          <span
+            className="pp-pixel wb-cap"
+            style={{ minWidth: 40, textAlign: "left" }}
+          >
+            Paper
+          </span>
+        )}
+        {sw(
+          FILL,
+          isText ? it.fill || PAPER : it.color,
+          isText ? "fill" : "color",
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }) {
   return (
     <div
@@ -621,7 +850,11 @@ function Whiteboard() {
     return n;
   }; // always reads fresh state
   const [tool, setTool] = useState("pencil");
-  const [color, setColor] = useState(SW[0]);
+  const [fill, setFill] = useState(FILL[0]);
+  const [ink, setInk] = useState(INK[0]);
+  const color = fill; // fill colour: shapes, sticky notes, highlighter
+  const inkTool = tool === "pencil" || tool === "text";
+  const penColor = tool === "marker" ? fill : ink;
   const [grid, setGrid] = useState(false);
   const [view, setView] = useState({ x: -40, y: -40, z: 1 });
   const [box, setBox] = useState({ w: 800, h: 500 });
@@ -804,17 +1037,6 @@ function Whiteboard() {
       snapshot();
       drag.current = { k: "erase", last: p };
       setItems((a) => hitErase(a, p, ER[er]), true);
-    } else if ((tool === "pencil" || tool === "marker") && e.shiftKey) {
-      setDraft({
-        id: newId(),
-        type: e.altKey ? "circle" : "rect",
-        x: s.x,
-        y: s.y,
-        w: 0,
-        h: 0,
-        color,
-      });
-      drag.current = { k: "shape", s };
     } else if (tool === "pencil" || tool === "marker") {
       if (grid) {
         const n = sz[tool] + 1,
@@ -825,7 +1047,7 @@ function Whiteboard() {
           cells: stamp(c[0], c[1], n),
           n,
           last: c,
-          color,
+          color: penColor,
           x: 0,
           y: 0,
         });
@@ -834,7 +1056,7 @@ function Whiteboard() {
           id: newId(),
           type: "stroke",
           pts: [p],
-          color: tool === "marker" ? color : "#3D262A",
+          color: penColor,
           sw: tool === "marker" ? MARK[sz.marker] : PEN[sz.pencil],
           alpha: tool === "marker" ? 0.45 : 1,
           x: 0,
@@ -854,12 +1076,22 @@ function Whiteboard() {
               type: "sticky",
               x: s.x,
               y: s.y,
-              w: 200,
-              h: 170,
+              w: 240,
+              h: 210,
               color,
               text: "",
             }
-          : { id, type: "text", x: s.x, y: s.y, w: 220, h: 64, text: "" },
+          : {
+              id,
+              type: "text",
+              x: s.x,
+              y: s.y,
+              w: 300,
+              h: 96,
+              ink,
+              fill: "#FFFDF9",
+              text: "",
+            },
       ]);
       newNote.current = id;
       sfx.pop(snd);
@@ -1016,7 +1248,7 @@ function Whiteboard() {
       py: p.y,
       ow: it.w,
       oh: it.h,
-      mh: it.type === "text" ? 56 : 90,
+      mh: it.type === "text" ? 84 : 110,
     };
     svgRef.current.setPointerCapture(e.pointerId);
   };
@@ -1055,7 +1287,7 @@ function Whiteboard() {
       if (g.length > 4) lines.push(`+${g.length - 4} more`);
     });
     const text = lines.join("\n"),
-      h = clamp(40 + lines.length * 24, 170, 520);
+      h = clamp(60 + lines.length * 28, 210, 620);
     const bs = notes.map(bbox),
       x = Math.max(...bs.map((b) => b[2])) + 30,
       y = Math.min(...bs.map((b) => b[1]));
@@ -1073,8 +1305,9 @@ function Whiteboard() {
           summary: true,
           x,
           y,
-          w: 240,
+          w: 300,
           h,
+          fs: 20,
           color: "#FFE9A8",
           text,
         },
@@ -1169,64 +1402,23 @@ function Whiteboard() {
   itemDownRef.current = itemDown;
   const sd = useMemo(() => (e, it) => itemDownRef.current(it)(e), []); // stable handler so SvgItem can stay memoized
 
-  /* sticky notes / text boxes: real HTML (not scaled SVG), so text stays sharp */
   const noteLayer = G.items
     .filter((i) => i.type === "sticky" || i.type === "text")
-    .map((it) => {
-      const sticky = it.type === "sticky";
-      return (
-        <div
-          key={it.id}
-          className={sel === it.id ? "wb-sel" : ""}
-          onPointerDown={tool === "eraser" ? itemDown(it) : undefined}
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            transform: `translate(${it.x}px, ${it.y}px)`,
-            width: it.w,
-            height: it.h,
-            pointerEvents:
-              !space && (tool === "select" || tool === "eraser")
-                ? "auto"
-                : "none",
-          }}
-        >
-          <div
-            className={sticky ? "wb-note" : "wb-text"}
-            style={sticky ? { background: it.color } : undefined}
-          >
-            <div className="wb-grip" onPointerDown={itemDown(it)} />
-            <textarea
-              value={it.text}
-              ref={(el) => {
-                if (el && newNote.current === it.id) {
-                  newNote.current = null;
-                  el.focus();
-                }
-              }}
-              spellCheck={false}
-              onChange={(e) => {
-                const t = e.target,
-                  nv = autoCalc(t.value, e.nativeEvent),
-                  extra = t.scrollHeight - t.clientHeight; // grow the note when text overflows
-                if (nv !== t.value) sfx.pop(snd);
-                patch(
-                  it.id,
-                  extra > 0 ? { text: nv, h: it.h + extra } : { text: nv },
-                );
-              }}
-              onFocus={() => setSel(it.id)}
-            />
-            <div
-              className="wb-resize"
-              title="Drag to resize"
-              onPointerDown={resizeDown(it)}
-            />
-          </div>
-        </div>
-      );
-    });
+    .map((it) => (
+      <Note
+        key={it.id}
+        it={it}
+        selected={sel === it.id}
+        live={!space && (tool === "select" || tool === "eraser")}
+        eraser={tool === "eraser"}
+        itemDown={itemDown}
+        resizeDown={resizeDown}
+        patch={patch}
+        setSel={setSel}
+        newNote={newNote}
+        snd={snd}
+      />
+    ));
   /* ── clipboard actions (selected item) ── */
   const copy = (cut) => {
     const it = G.items.find((i) => i.id === sel);
@@ -1361,7 +1553,10 @@ function Whiteboard() {
       else if (key === "+" || key === "=") zoomAt(1.2);
       else if (key === "-") zoomAt(1 / 1.2);
       else if (key === "0") setView({ x: -40, y: -40, z: 1 });
-      else if (/^[1-5]$/.test(key)) setColor(SW[+key - 1]);
+      else if (/^[1-9]$/.test(key)) {
+        const c = (inkTool ? INK : FILL)[+key - 1];
+        if (c) (inkTool ? setInk : setFill)(c);
+      }
     };
     const ku = (e) => {
       if (e.key === " ") setSpace(false);
@@ -1379,10 +1574,10 @@ function Whiteboard() {
         {
           id,
           type: "sticky",
-          x: view.x + box.w / 2 / view.z - 100,
-          y: view.y + box.h / 2 / view.z - 85,
-          w: 200,
-          h: 170,
+          x: view.x + box.w / 2 / view.z - 120,
+          y: view.y + box.h / 2 / view.z - 105,
+          w: 240,
+          h: 210,
           color,
           text: text.slice(0, 600),
         },
@@ -1403,17 +1598,46 @@ function Whiteboard() {
   });
 
   const done = G.tasks.filter((t) => t.done).length;
+  const selItem = sel && G.items.find((i) => i.id === sel);
+  const restyle = (id, p) => {
+    snapshot(); // colour / size changes can be undone
+    patch(id, p);
+  };
 
   return (
     <div className="pp-root">
       <style>{CSS}</style>
       <div className="wb-app">
         <header className="wb-head">
-          <h1 className="pp-pixel text-xl">PIXEL WHITEBOARD</h1>
+          <h1
+            className="pp-pixel flex items-center gap-2"
+            style={{ fontSize: "1.45rem", textShadow: "3px 3px 0 #FFB6C1" }}
+          >
+            <Sprite
+              pet={buddy}
+              lvl={G.pets[buddy.id]?.level}
+              size={34}
+              blink={blink}
+            />
+            PIXEL WHITEBOARD
+          </h1>
           <div className="flex gap-2 items-center flex-wrap">
             <span className="pp-chip">
               <Sparkles size={14} />
-              Lv {lvl} · {G.xp % 100}/100
+              Lv {lvl}
+              <span
+                className="pp-bar"
+                style={{ width: 70 }}
+                role="img"
+                aria-label={`${G.xp % 100} of 100 XP`}
+              >
+                {Array.from({ length: 10 }, (_, i) => (
+                  <i
+                    key={i}
+                    className={i < Math.floor((G.xp % 100) / 10) ? "on" : ""}
+                  />
+                ))}
+              </span>
             </span>
             <span className="pp-chip">
               <Coins size={14} />
@@ -1455,13 +1679,13 @@ function Whiteboard() {
           </div>
         </header>
 
-        <nav className="wb-tools" aria-label="Tools">
+        <nav className="pp-card wb-tools" aria-label="Tools">
           {TOOLS.map(([id, Ic, label, hk]) => (
             <button
               key={id}
               title={`${label} (${hk.toUpperCase()})`}
               aria-label={label}
-              className={`pp-btn sm ${tool === id ? "gold" : "cream"}`}
+              className={`pp-btn sm ${tool === id ? "gold on" : "cream"}`}
               onClick={click(() => setTool(id))}
             >
               <Ic size={18} />
@@ -1471,7 +1695,11 @@ function Whiteboard() {
           {["eraser", "pencil", "marker"].includes(tool) && (
             <div
               className="flex flex-wrap gap-1 justify-center"
-              style={{ maxWidth: 64 }}
+              style={{
+                maxWidth: 64,
+                gridColumn: "1/-1",
+                justifySelf: "center",
+              }}
             >
               {ER.map((_, i) => {
                 const on = (tool === "eraser" ? er : sz[tool]) === i,
@@ -1494,7 +1722,7 @@ function Whiteboard() {
                         width: d,
                         height: d,
                         borderRadius: tool === "eraser" ? 0 : "50%",
-                        background: tool === "marker" ? color : "#3D262A",
+                        background: tool === "eraser" ? "#3D262A" : penColor,
                         border:
                           tool === "marker" ? "2px solid #3D262A" : "none",
                         boxSizing: "border-box",
@@ -1505,17 +1733,21 @@ function Whiteboard() {
               })}
             </div>
           )}
+          <p className="pp-pixel wb-cap" style={{ gridColumn: "1/-1" }}>
+            {inkTool ? "Ink" : "Fill"}
+          </p>
           <div
             className="flex flex-wrap gap-1 justify-center"
-            style={{ maxWidth: 64 }}
+            style={{ maxWidth: 64, gridColumn: "1/-1", justifySelf: "center" }}
           >
-            {SW.map((c) => (
+            {(inkTool ? INK : FILL).map((c, i) => (
               <button
                 key={c}
+                title={i < 9 ? `Color (${i + 1})` : "Color"}
                 aria-label={`Color ${c}`}
-                className={`wb-sw ${color === c ? "on" : ""}`}
+                className={`wb-sw ${(inkTool ? ink : fill) === c ? "on" : ""}`}
                 style={{ background: c }}
-                onClick={click(() => setColor(c))}
+                onClick={click(() => (inkTool ? setInk : setFill)(c))}
               />
             ))}
           </div>
@@ -1733,6 +1965,42 @@ function Whiteboard() {
             </div>
           </div>
 
+          {selItem &&
+            !draft &&
+            tool !== "eraser" &&
+            ["sticky", "text", "rect", "circle"].includes(selItem.type) && (
+              <StyleBar
+                it={selItem}
+                view={view}
+                box={box}
+                patch={restyle}
+                snd={snd}
+              />
+            )}
+          {!G.items.length && !draft && (
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "42%",
+                transform: "translate(-50%,-50%)",
+                pointerEvents: "none",
+                textAlign: "center",
+                maxWidth: 300,
+                padding: "14px 18px",
+                border: "3px dashed #3D262A",
+                borderRadius: 14,
+                background: "rgba(255,253,249,.9)",
+              }}
+            >
+              <p className="pp-pixel text-sm">Empty board</p>
+              <p className="text-xs font-bold mt-1">
+                Draw with the pencil, or press S for a sticky note and T for a
+                text box.
+              </p>
+            </div>
+          )}
+
           {/* mini-map */}
           <div
             className="pp-card"
@@ -1831,9 +2099,27 @@ function Whiteboard() {
               </button>
             </div>
             <div className="pp-lcd text-center py-3 mb-3">
-              <span className="pp-pixel" style={{ fontSize: 40 }}>
+              <div
+                className="pp-pixel"
+                style={{
+                  fontSize: 46,
+                  lineHeight: 1,
+                  textShadow: "3px 3px 0 #FFB6C1",
+                }}
+              >
                 {fmt(left)}
-              </span>
+              </div>
+              <p className="text-xs font-bold mt-1">
+                {running
+                  ? mode === "focus"
+                    ? "Focusing… your buddy is cheering"
+                    : "Resting…"
+                  : left < total
+                    ? "Paused"
+                    : mode === "focus"
+                      ? "Ready to focus"
+                      : "Ready to rest"}
+              </p>
             </div>
             <div className="pp-bar mb-3" aria-hidden="true">
               {Array.from({ length: 20 }, (_, i) => (
@@ -1879,12 +2165,31 @@ function Whiteboard() {
                 <RotateCcw size={16} />
               </button>
             </div>
-            <p
-              className="text-xs font-bold text-center"
-              style={{ opacity: 0.7, marginTop: 16 }}
+            <div
+              className="text-center"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3,1fr)",
+                gap: 8,
+                marginTop: 16,
+              }}
             >
-              {G.minutes} min focused in total
-            </p>
+              {[
+                [Trophy, `${G.minutes}m`, "focused"],
+                [Check, `${done}/${G.tasks.length}`, "tasks"],
+                [
+                  StickyNote,
+                  G.items.filter((i) => i.type === "sticky").length,
+                  "notes",
+                ],
+              ].map(([Ic, v, l]) => (
+                <div key={l} className="pp-lcd py-2">
+                  <Ic size={16} style={{ margin: "0 auto" }} />
+                  <div className="font-black">{v}</div>
+                  <div className="text-xs font-bold">{l}</div>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className="pp-card p-4">
